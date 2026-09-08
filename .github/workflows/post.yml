@@ -1,0 +1,38 @@
+name: post-reel
+on:
+  schedule:
+    - cron: "0 15 * * *"           # 15:00 UTC = 11:00 New York / 08:00 LA / 16:00 London / 18:00 Moscow
+  workflow_dispatch:
+    inputs:
+      post_date:
+        description: "YYYY-MM-DD to force a date (testing)"
+        required: false
+      dry_run:
+        description: "1 = do not publish, only print"
+        required: false
+        default: "1"
+permissions:
+  contents: write
+concurrency: post-reel
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: publish today's note
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          REELS_BASE_URL: ${{ vars.REELS_BASE_URL }}
+          POST_DATE: ${{ github.event.inputs.post_date }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: python post_reel.py
+      - name: commit posted state
+        run: |
+          git config user.name "observer"
+          git config user.email "observer@users.noreply.github.com"
+          git add posted.json
+          git diff --cached --quiet || (git commit -m "posted" && git push)

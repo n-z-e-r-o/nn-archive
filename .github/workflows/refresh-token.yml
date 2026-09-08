@@ -1,0 +1,21 @@
+name: refresh-token
+on:
+  schedule:
+    - cron: "0 3 * * 1"           # weekly; long-lived tokens live 60 days
+  workflow_dispatch:
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: exchange for a fresh long-lived token and store it
+        env:
+          APP_ID: ${{ secrets.APP_ID }}
+          APP_SECRET: ${{ secrets.APP_SECRET }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ secrets.ADMIN_PAT }}
+          REPO: ${{ github.repository }}
+        run: python refresh_token.py

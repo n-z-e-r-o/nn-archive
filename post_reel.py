@@ -9,6 +9,10 @@ Runs inside GitHub Actions once a day. Steps:
   5. POST /{ig_user}/media_publish creation_id=...
   6. append to posted.json (the workflow commits it back)
 
+Uses the Instagram API with Instagram Login (graph.instagram.com): the token is
+an Instagram user token, IG_USER_ID is the Instagram-scoped user id, and the
+media/publish endpoints live on graph.instagram.com — no Facebook Page hop.
+
 Env (GitHub secrets): IG_USER_ID, IG_ACCESS_TOKEN, REELS_BASE_URL
   REELS_BASE_URL = https://github.com/<owner>/<repo>/releases/download/<tag>
 Optional: POST_DATE=YYYY-MM-DD to force a date (testing), DRY_RUN=1.
@@ -21,7 +25,7 @@ import time
 import urllib.parse
 import urllib.request
 
-API = "https://graph.facebook.com/v21.0"
+API = "https://graph.instagram.com/v21.0"
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 

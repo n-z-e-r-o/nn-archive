@@ -1,21 +1,20 @@
-"""Refresh the long-lived Instagram user token before it expires (60 days) and
+"""Optional: refresh a long-lived Facebook user/page token before it expires and
 write it back into the repo secret IG_ACCESS_TOKEN via the gh CLI.
 
-Instagram Login tokens refresh with just the current (valid, >24h old) token —
-no app id/secret needed. The refreshed token is valid for another 60 days.
+NOTE: if IG_ACCESS_TOKEN is a long-lived *Page* token (derived from a long-lived
+user token), it does not expire and this workflow is unnecessary. Keep it only if
+you store a 60-day user token instead.
 
-Secrets needed: IG_ACCESS_TOKEN, ADMIN_PAT (fine-grained, 'Secrets: write' on
-this repo). REPO is provided by the workflow (github.repository).
+Secrets needed: APP_ID, APP_SECRET, IG_ACCESS_TOKEN, ADMIN_PAT (fine-grained,
+'Secrets: write' on this repo). REPO is provided by the workflow.
 """
 import json, os, subprocess, urllib.parse, urllib.request
-
-q = urllib.parse.urlencode({"grant_type": "ig_refresh_token",
-                            "access_token": os.environ["IG_ACCESS_TOKEN"]})
-url = f"https://graph.instagram.com/refresh_access_token?{q}"
-with urllib.request.urlopen(url, timeout=60) as r:
-    data = json.load(r)
-new = data["access_token"]
-print(f"refreshed; expires_in={data.get('expires_in')} s")
+q = urllib.parse.urlencode({"grant_type": "fb_exchange_token",
+                            "client_id": os.environ["APP_ID"],
+                            "client_secret": os.environ["APP_SECRET"],
+                            "fb_exchange_token": os.environ["IG_ACCESS_TOKEN"]})
+with urllib.request.urlopen(f"https://graph.facebook.com/v21.0/oauth/access_token?{q}", timeout=60) as r:
+    new = json.load(r)["access_token"]
 subprocess.run(["gh", "secret", "set", "IG_ACCESS_TOKEN", "--repo", os.environ["REPO"]],
                input=new.encode(), check=True)
-print("token written back to IG_ACCESS_TOKEN")
+print("token refreshed")

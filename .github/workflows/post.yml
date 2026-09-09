@@ -2,6 +2,7 @@ name: post-reel
 on:
   schedule:
     - cron: "0 15 * * *"           # 15:00 UTC = 11:00 New York / 08:00 LA / 16:00 London / 18:00 Moscow
+    - cron: "0 11 18 9 *"          # launch day only (Sep 18): 11:00 UTC = 14:00 Moscow — earlier, to leave time to react
   workflow_dispatch:
     inputs:
       post_date:
